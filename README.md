@@ -1,3 +1,3 @@
-# package-tree
+# Packman
 
 A rudimentary package indexer.
