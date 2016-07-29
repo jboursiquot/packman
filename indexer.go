@@ -4,6 +4,7 @@ package packman
 // considered package indexers.
 type Indexer interface {
 	Index(p Package) error
+	Remove(p Package) error
 	Query(name string) (Package, error)
 }
 
