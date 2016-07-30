@@ -60,7 +60,6 @@ func handleConn(conn net.Conn) {
 			return
 		}
 		message = strings.TrimSpace(message)
-		// log.Printf("%v | Message: %v", conn, message)
 
 		cmd, err := packman.CommandFromMessage(message)
 		if err != nil {
