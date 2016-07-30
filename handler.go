@@ -16,7 +16,7 @@ const (
 	QUERY = "QUERY"
 )
 
-var msgRegex = regexp.MustCompile(`(INDEX|REMOVE|QUERY){1}\|(.+){1}\|(.*)\\n`)
+var msgRegex = regexp.MustCompile(`^(INDEX|REMOVE|QUERY){1}\|(.+){1}\|(.*)`)
 
 // Command pulls together all the component parts of a message to be processed.
 type Command struct {
@@ -34,7 +34,6 @@ func CommandFromMessage(message string) (*Command, error) {
 	}
 
 	verb, pkg, deps := matches[0][1], matches[0][2], strings.Split(matches[0][3], ",")
-
 	if len(pkg) == 0 {
 		return nil, InvalidMessageError{message}
 	}

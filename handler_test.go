@@ -12,18 +12,17 @@ var malformedMessageTests = []struct {
 	expected error
 }{
 	{"", packman.InvalidMessageError{Message: ""}},
-	{`\n`, packman.InvalidMessageError{Message: `\n`}},
 	{"||", packman.InvalidMessageError{Message: "||"}},
-	{`||\n`, packman.InvalidMessageError{Message: `||\n`}},
-	{`badcommand|pkg|\n`, packman.InvalidMessageError{Message: `badcommand|pkg|\n`}},
+	{`badcommand|pkg|`, packman.InvalidMessageError{Message: `badcommand|pkg|`}},
 	{"index|pkg", packman.InvalidMessageError{Message: "index|pkg"}},
 	{"index||", packman.InvalidMessageError{Message: "index||"}},
-	{`index||\n`, packman.InvalidMessageError{Message: `index||\n`}},
 	{`index||\t`, packman.InvalidMessageError{Message: `index||\t`}},
-	{`index|pkg\n`, packman.InvalidMessageError{Message: `index|pkg\n`}},
-	{`index\n|pkg\n`, packman.InvalidMessageError{Message: `index\n|pkg\n`}},
-	{`INDEX|pkg\n`, packman.InvalidMessageError{Message: `INDEX|pkg\n`}},
-	{`QUERY||\n`, packman.InvalidMessageError{Message: `QUERY||\n`}},
+	{`index|pkg`, packman.InvalidMessageError{Message: `index|pkg`}},
+	{`index\n|pkg`, packman.InvalidMessageError{Message: `index\n|pkg`}},
+	{`INDEX|pkg`, packman.InvalidMessageError{Message: `INDEX|pkg`}},
+	{`BLINDEX|pkg|dep`, packman.InvalidMessageError{Message: `BLINDEX|pkg|dep`}},
+	{`QUERY||`, packman.InvalidMessageError{Message: `QUERY||`}},
+	{`QUER|a|b`, packman.InvalidMessageError{Message: `QUER|a|b`}},
 }
 
 func TestHandlerHandlesInvalidMessages(t *testing.T) {
@@ -40,7 +39,7 @@ var validMessageTests = []struct {
 	expected *packman.Command
 }{
 	{
-		`INDEX|cloog|gmp,isl,pkg-config\n`,
+		`INDEX|cloog|gmp,isl,pkg-config`,
 		&packman.Command{
 			Verb: packman.INDEX,
 			Package: packman.Package{
@@ -54,7 +53,7 @@ var validMessageTests = []struct {
 		},
 	},
 	{
-		`INDEX|ceylon|\n`,
+		`INDEX|ceylon|`,
 		&packman.Command{
 			Verb: packman.INDEX,
 			Package: packman.Package{
@@ -63,16 +62,16 @@ var validMessageTests = []struct {
 		},
 	},
 	{
-		`REMOVE|cloog|\n`,
+		`REMOVE|cloog3|`,
 		&packman.Command{
 			Verb: packman.REMOVE,
 			Package: packman.Package{
-				Name: "cloog",
+				Name: "cloog3",
 			},
 		},
 	},
 	{
-		`QUERY|cloog|\n`,
+		`QUERY|cloog|`,
 		&packman.Command{
 			Verb: packman.QUERY,
 			Package: packman.Package{
