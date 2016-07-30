@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"net"
 	"strings"
@@ -15,11 +16,11 @@ const (
 
 var (
 	// OK means we're all good
-	OK = "OK"
+	OK = []byte("OK\n")
 	// FAIL means a business rule violated
-	FAIL = "FAIL"
+	FAIL = []byte("FAIL\n")
 	// ERROR means bad message or otherwise unparsable
-	ERROR = "ERROR"
+	ERROR = []byte("ERROR\n")
 
 	idxr = packman.NewIndexer(nil)
 )
@@ -39,7 +40,6 @@ func main() {
 
 	for {
 		conn, err := ln.Accept()
-		log.Printf("conn, err -> %v, %v", conn, err)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -50,38 +50,41 @@ func main() {
 
 func handleConn(conn net.Conn) {
 	defer conn.Close()
+
 	for {
 		message, err := bufio.NewReader(conn).ReadString('\n')
 		if err != nil {
-			log.Println(err)
-			continue
+			if err != io.EOF {
+				log.Println(err)
+			}
+			return
 		}
 		message = strings.TrimSpace(message)
-		log.Printf("Message Received: '%v'", message)
+		// log.Printf("%v | Message: %v", conn, message)
 
 		cmd, err := packman.CommandFromMessage(message)
 		if err != nil {
-			// log.Printf("Error: %v | Sending %v", err, []byte(ERROR+"\n"))
-			_, wErr := conn.Write([]byte(ERROR + "\n"))
+			log.Printf("REQ=%v, RES=%v", message, string(ERROR))
+			_, wErr := conn.Write(ERROR)
 			if wErr != nil {
-				log.Printf("Failed to send message back: %v. Skipping.", wErr)
+				log.Printf("REQ=%v, %v", message, wErr)
 			}
+			continue
 		}
 
 		_, err = packman.ProcessCommand(cmd, &idxr)
-		// log.Printf("ProcessCommand(%v, %v) -> (%v, %v)", cmd, &idxr, res, err)
 		if err != nil {
-			// log.Printf("Error: %v | Sending %v", err, []byte(FAIL+"\n"))
-			_, wErr := conn.Write([]byte(FAIL + "\n"))
+			log.Printf("REQ=%v  RES=%v", message, string(FAIL))
+			_, wErr := conn.Write(FAIL)
 			if wErr != nil {
-				log.Printf("Failed to send message back: %v. Skipping.", wErr)
+				log.Printf("REQ=%v, %v", message, wErr)
 			}
-		}
-
-		_, wErr := conn.Write([]byte(OK + "\n"))
-		// log.Printf("conn.Write(%v) -> %d, %v", []byte(OK+"\n"), written, err)
-		if wErr != nil {
-			log.Printf("Failed to send message back: %v. Skipping.", wErr)
+		} else {
+			log.Printf("REQ=%v, RES=%v", message, string(OK))
+			_, wErr := conn.Write(OK)
+			if wErr != nil {
+				log.Printf("REQ=%v, %v", message, wErr)
+			}
 		}
 
 	}

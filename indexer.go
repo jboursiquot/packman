@@ -1,5 +1,7 @@
 package packman
 
+import "sync"
+
 // Indexer is the interface our actual implementations must satisfy to be
 // considered package indexers.
 type Indexer interface {
@@ -18,11 +20,12 @@ type Package struct {
 // querying for a package.
 type PackageIndexer struct {
 	dict map[string]*Package
+	*sync.Mutex
 }
 
 // NewIndexer returns an implementation of our indexer.
 func NewIndexer(initialDict map[string]*Package) PackageIndexer {
-	pi := PackageIndexer{dict: initialDict}
+	pi := PackageIndexer{initialDict, &sync.Mutex{}}
 	if pi.dict == nil {
 		pi.dict = make(map[string]*Package, 0)
 	}
@@ -41,7 +44,6 @@ func (pi *PackageIndexer) Index(p *Package) error {
 	}
 	// add/update package
 	pi.dict[p.Name] = p
-
 	return nil
 }
 
@@ -58,7 +60,6 @@ func (pi *PackageIndexer) Remove(p *Package) error {
 	}
 	// we're free to remove it at this point
 	delete(pi.dict, p.Name)
-
 	return nil
 }
 

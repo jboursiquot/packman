@@ -1,6 +1,7 @@
 package packman
 
 import (
+	"log"
 	"regexp"
 	"strings"
 )
@@ -60,6 +61,16 @@ func CommandFromMessage(message string) (*Command, error) {
 // The results will vary depending on the command that was issued but
 // generally, only a QUERY command will return anything.
 func ProcessCommand(cmd *Command, idxr *PackageIndexer) (interface{}, error) {
+	// Ensure that processing of this command is synchronized.
+	idxr.Lock()
+	defer idxr.Unlock()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered | err=%v, cmd=%v", r, cmd)
+		}
+	}()
+
 	switch cmd.Verb {
 	case INDEX:
 		return nil, idxr.Index(&cmd.Package)
