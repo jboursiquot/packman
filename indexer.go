@@ -5,9 +5,9 @@ import "sync"
 // Indexer is the interface our actual implementations must satisfy to be
 // considered package indexers.
 type Indexer interface {
-	Index(p Package) error
-	Remove(p Package) error
-	Query(name string) (Package, error)
+	Index(Package) error
+	Remove(Package) error
+	Query(string) (Package, error)
 }
 
 // Package represents a package to be indexed, removed and querried.
